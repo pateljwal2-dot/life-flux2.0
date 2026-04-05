@@ -70,6 +70,7 @@
             display: none;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(20px);
+            z-index: 100;
         }
         
         .dark #modal-overlay {
@@ -80,6 +81,19 @@
             display: flex;
         }
 
+        /* Splash Welcome Screen */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1.2s ease, visibility 1.2s; /* Slightly slower transition for smoothness */
+        }
+
         ::selection {
             background: var(--accent-color);
             color: #000;
@@ -88,8 +102,14 @@
 </head>
 <body class="pb-48">
 
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <h1 id="splash-greeting" class="text-4xl sm:text-6xl font-black tracking-tighter text-main uppercase mb-2">Hi!! User</h1>
+        <p class="text-xs font-bold tracking-[0.6em] accent-text uppercase animate-pulse">Flow Without Limits</p>
+    </div>
+
     <!-- MODAL SYSTEM -->
-    <div id="modal-overlay" class="fixed inset-0 z-[100] items-center justify-center p-4">
+    <div id="modal-overlay" class="fixed inset-0 items-center justify-center p-4">
         <div id="modal-content" class="bg-card rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl border border-main">
             <!-- Content injected via JS -->
         </div>
@@ -99,7 +119,8 @@
     <header class="max-w-6xl mx-auto px-6 pt-12 pb-8 flex justify-between items-start">
         <div class="cursor-pointer" onclick="navigateTo('DASHBOARD')">
             <h1 class="text-2xl font-black tracking-tighter text-main uppercase">Life<span class="accent-text">Flux</span></h1>
-            <p class="text-[10px] font-bold tracking-[0.4em] mt-1 text-muted uppercase">System V4.1 — <span id="header-day" class="text-main">MONDAY</span></p>
+            <p class="text-[9px] font-bold tracking-[0.3em] mt-1 text-muted uppercase">Flow Without Limits</p>
+            <p class="text-[10px] font-bold tracking-[0.4em] mt-0.5 text-muted uppercase">System V4.1 — <span id="header-day" class="text-main">MONDAY</span></p>
         </div>
         <div class="flex items-center gap-4">
             <!-- THEME TOGGLE -->
@@ -676,6 +697,20 @@
             setInterval(updateClock, 1000);
             updateClock();
             render();
+
+            // Splash Screen Logic - EXTENDED TIME
+            const activeProfile = state.profiles.find(p => p.id === state.activeProfileId) || state.profiles[0];
+            const splashGreeting = document.getElementById('splash-greeting');
+            const splashScreen = document.getElementById('splash-screen');
+            if (splashGreeting) splashGreeting.innerText = `Hi!! ${activeProfile.name}`;
+            
+            // Increased from 2000ms to 4000ms for a more deliberate welcome experience
+            setTimeout(() => {
+                if (splashScreen) {
+                    splashScreen.style.opacity = '0';
+                    setTimeout(() => splashScreen.style.visibility = 'hidden', 1200);
+                }
+            }, 4000); 
             
             setInterval(() => {
                 const toSave = { ...state, completedIds: Array.from(state.completedIds) };
