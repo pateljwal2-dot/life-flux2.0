@@ -15,7 +15,7 @@
             --text-main: #0f172a;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --accent-color: #6366f1; /* Electric Indigo for Light */
+            --accent-color: #6366f1; 
             --card-bg: #ffffff;
         }
 
@@ -25,7 +25,7 @@
             --text-main: #ffffff;
             --text-muted: #94a3b8;
             --border-color: #1e293b;
-            --accent-color: #D9F99D; /* Cyber Lime for Dark */
+            --accent-color: #D9F99D; 
             --card-bg: #111111;
         }
 
@@ -38,7 +38,6 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Enforced visibility classes */
         .text-main { color: var(--text-main) !important; }
         .bg-card { background-color: var(--card-bg) !important; }
         .bg-secondary { background-color: var(--bg-secondary) !important; }
@@ -202,7 +201,7 @@
                     <div id="profile-selector-list" class="space-y-3"></div>
                 </div>
 
-                <div class="lg:col-span-2 rounded-[2.5rem] border p-10 bg-card border-main relative shadow-sm">
+                <div id="profile-details-panel" class="lg:col-span-2 rounded-[2.5rem] border p-10 bg-card border-main relative shadow-sm">
                     <button onclick="openModal('edit_profile')" class="absolute top-8 right-8 p-3 rounded-2xl bg-secondary border border-main text-muted hover:accent-text transition-colors flex items-center justify-center"><i data-lucide="pencil" size="14"></i></button>
                     <div class="text-center">
                         <div class="relative inline-block">
@@ -213,8 +212,9 @@
                         <h3 id="profile-name-large" class="text-3xl font-bold text-main">User Alpha</h3>
                         <div class="mt-6 flex flex-wrap justify-center gap-4" id="age-stats"></div>
                     </div>
-                    <div class="pt-8 mt-8 border-t border-dashed border-main">
-                        <button onclick="openModal('factory_reset')" class="w-full py-5 rounded-2xl border border-red-500/20 text-red-500 font-bold text-[11px] uppercase tracking-widest hover:bg-red-500/5 transition-colors">Wipe Architecture</button>
+                    <div class="pt-8 mt-8 border-t border-dashed border-main flex flex-col gap-3">
+                        <button onclick="deleteActiveProfile()" id="delete-profile-btn" class="w-full py-4 rounded-2xl border border-red-500/20 text-red-500 font-bold text-[11px] uppercase tracking-widest hover:bg-red-500/5 transition-colors hidden">Delete Profile</button>
+                        <button onclick="openModal('factory_reset')" class="w-full py-4 rounded-2xl border border-main text-muted font-bold text-[11px] uppercase tracking-widest hover:bg-slate-500/5 transition-colors">Full System Reset</button>
                     </div>
                 </div>
             </div>
@@ -321,8 +321,12 @@
 
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
-            document.getElementById('header-day').innerText = days[now.getDay()];
+            const clockEl = document.getElementById('clock');
+            if(clockEl) clockEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+            
+            const headerDayEl = document.getElementById('header-day');
+            if(headerDayEl) headerDayEl.innerText = days[now.getDay()];
+            
             const todayStr = now.toDateString();
             if (todayStr !== state.lastResetDate) {
                 state.history.unshift({ date: state.lastResetDate, efficiency: calculateEfficiency() });
@@ -373,6 +377,18 @@
             render();
         }
 
+        function switchProfile(profileId) {
+            state.activeProfileId = profileId;
+            render();
+        }
+
+        function deleteActiveProfile() {
+            if (state.profiles.length <= 1) return;
+            state.profiles = state.profiles.filter(p => p.id !== state.activeProfileId);
+            state.activeProfileId = state.profiles[0].id;
+            render();
+        }
+
         function openModal(type, payload = null) {
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
@@ -419,6 +435,13 @@
                         <input id="input-birth" type="date" value="${profile.birthdate}" class="${inputStyle}">
                         <button onclick="saveProfile()" class="${btnPrimary}">Sync</button>
                     </div>`;
+            } else if (type === 'add_profile') {
+                html += `
+                    <div class="space-y-4">
+                        <input id="new-profile-name" placeholder="New User Name" class="${inputStyle}">
+                        <input id="new-profile-birth" type="date" value="2000-01-01" class="${inputStyle}">
+                        <button onclick="saveNewProfile()" class="${btnPrimary}">Generate Profile</button>
+                    </div>`;
             } else if (type === 'edit_blueprint') {
                 const dayPlan = state.weeklyPlan[payload];
                 html += `
@@ -464,6 +487,17 @@
             render();
         }
 
+        function saveNewProfile() {
+            const name = document.getElementById('new-profile-name').value;
+            const birth = document.getElementById('new-profile-birth').value;
+            if(!name) return;
+            const id = 'p-' + Date.now();
+            state.profiles.push({ id, name, birthdate: birth, avatar: null });
+            state.activeProfileId = id;
+            closeModal();
+            render();
+        }
+
         function saveBlueprint(day) {
             state.weeklyPlan[day].BREAKFAST = document.getElementById('input-b').value;
             state.weeklyPlan[day].LUNCH = document.getElementById('input-l').value;
@@ -488,17 +522,22 @@
         }
 
         function render() {
-            const profile = state.profiles.find(p => p.id === state.activeProfileId);
-            document.getElementById('user-greeting').innerText = profile.name.split(' ')[0];
-            document.getElementById('user-name-small').innerText = profile.name;
-            const avatars = [document.getElementById('user-avatar-small'), document.getElementById('profile-avatar-large')];
-            avatars.forEach(el => {
-                if(!el) return;
-                if(profile.avatar) el.innerHTML = `<img src="${profile.avatar}" class="w-full h-full object-cover">`;
-                else el.innerText = profile.name[0];
-            });
+            const profile = state.profiles.find(p => p.id === state.activeProfileId) || state.profiles[0];
+            
+            // Update UI elements dependent on active profile
+            const userGreetingEl = document.getElementById('user-greeting');
+            if(userGreetingEl) userGreetingEl.innerText = profile.name.split(' ')[0];
+            
+            const userNameSmallEl = document.getElementById('user-name-small');
+            if(userNameSmallEl) userNameSmallEl.innerText = profile.name;
+            
+            const avatarSmallEl = document.getElementById('user-avatar-small');
+            if(avatarSmallEl) {
+                if(profile.avatar) avatarSmallEl.innerHTML = `<img src="${profile.avatar}" class="w-full h-full object-cover">`;
+                else avatarSmallEl.innerText = profile.name[0];
+            }
 
-            // Update Navigation state
+            // Navigation state
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 const id = btn.id.replace('nav-', '');
                 btn.classList.toggle('accent-text', state.currentView === id);
@@ -507,7 +546,7 @@
 
             if (state.currentView === 'DASHBOARD') {
                 const ds = document.getElementById('day-selector');
-                ds.innerHTML = days.map(d => `
+                if(ds) ds.innerHTML = days.map(d => `
                     <button onclick="state.selectedDay='${d}'; render();" class="px-5 py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest shrink-0 border transition-all ${state.selectedDay === d ? 'accent-bg text-black border-transparent' : 'bg-card border-main text-muted'}">
                         ${d.slice(0,3)}
                         ${d === days[new Date().getDay()] ? `<div class="w-1 h-1 bg-black/50 dark:bg-black/30 rounded-full mx-auto mt-1"></div>` : ''}
@@ -515,12 +554,14 @@
                 `).join('');
 
                 const eff = calculateEfficiency();
-                document.getElementById('efficiency-value').innerText = eff + '%';
-                document.getElementById('efficiency-bar').style.width = eff + '%';
+                const effValueEl = document.getElementById('efficiency-value');
+                const effBarEl = document.getElementById('efficiency-bar');
+                if(effValueEl) effValueEl.innerText = eff + '%';
+                if(effBarEl) effBarEl.style.width = eff + '%';
 
                 const mp = document.getElementById('mini-meal-plan');
                 const dayPlan = state.weeklyPlan[state.selectedDay];
-                mp.innerHTML = `
+                if(mp) mp.innerHTML = `
                     <div class="flex justify-between items-center text-xs"><span class="font-bold text-muted uppercase tracking-widest text-[9px]">Breakfast</span><span class="font-bold text-main truncate max-w-[120px]">${dayPlan.BREAKFAST}</span></div>
                     <div class="flex justify-between items-center text-xs"><span class="font-bold text-muted uppercase tracking-widest text-[9px]">Lunch</span><span class="font-bold text-main truncate max-w-[120px]">${dayPlan.LUNCH}</span></div>
                     <div class="flex justify-between items-center text-xs"><span class="font-bold text-muted uppercase tracking-widest text-[9px]">Dinner</span><span class="font-bold text-main truncate max-w-[120px]">${dayPlan.DINNER}</span></div>
@@ -528,21 +569,23 @@
 
                 const tl = document.getElementById('timeline-list');
                 const filteredTasks = state.fluxTasks.filter(t => t.day === state.selectedDay);
-                tl.innerHTML = filteredTasks.map(t => `
-                    <div class="flex gap-4 group">
-                        <button onclick="handleTaskToggle('${t.id}')" class="w-5 h-5 rounded-md border shrink-0 transition-all ${state.completedIds.has(t.id) ? 'accent-bg border-transparent text-black' : 'border-main bg-secondary'} flex items-center justify-center">
-                            ${state.completedIds.has(t.id) ? '<i data-lucide="check" size="12"></i>' : ''}
-                        </button>
-                        <div class="flex-1 border-b pb-4 border-main ${state.completedIds.has(t.id) ? 'opacity-30' : ''}">
-                            <p class="text-[9px] font-bold text-muted uppercase tracking-widest">${t.time}</p>
-                            <p class="text-sm font-bold text-main ${state.completedIds.has(t.id) ? 'line-through' : ''}">${t.task}</p>
+                if(tl) {
+                    tl.innerHTML = filteredTasks.map(t => `
+                        <div class="flex gap-4 group">
+                            <button onclick="handleTaskToggle('${t.id}')" class="w-5 h-5 rounded-md border shrink-0 transition-all ${state.completedIds.has(t.id) ? 'accent-bg border-transparent text-black' : 'border-main bg-secondary'} flex items-center justify-center">
+                                ${state.completedIds.has(t.id) ? '<i data-lucide="check" size="12"></i>' : ''}
+                            </button>
+                            <div class="flex-1 border-b pb-4 border-main ${state.completedIds.has(t.id) ? 'opacity-30' : ''}">
+                                <p class="text-[9px] font-bold text-muted uppercase tracking-widest">${t.time}</p>
+                                <p class="text-sm font-bold text-main ${state.completedIds.has(t.id) ? 'line-through' : ''}">${t.task}</p>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
-                if(filteredTasks.length === 0) tl.innerHTML = '<div class="text-center py-12"><p class="text-muted/40 text-[10px] font-bold uppercase tracking-[0.2em]">Idle Phase</p></div>';
+                    `).join('');
+                    if(filteredTasks.length === 0) tl.innerHTML = '<div class="text-center py-12"><p class="text-muted/40 text-[10px] font-bold uppercase tracking-[0.2em]">Idle Phase</p></div>';
+                }
 
                 const pg = document.getElementById('protocol-grid');
-                pg.innerHTML = state.rechargeData.map(p => `
+                if(pg) pg.innerHTML = state.rechargeData.map(p => `
                     <div onclick="handleProtocolIncrement('${p.id}')" class="protocol-card group relative p-6 border rounded-3xl cursor-pointer bg-card border-main transition-all hover:border-slate-400 dark:hover:border-slate-700 shadow-sm">
                         <button onclick="removeProtocol('${p.id}', event)" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-10 flex items-center justify-center">
                             <i data-lucide="x" size="10"></i>
@@ -558,7 +601,7 @@
 
             if (state.currentView === 'WEEKLY_ARCHITECTURE') {
                 const grid = document.getElementById('full-weekly-grid');
-                grid.innerHTML = days.map(d => `
+                if(grid) grid.innerHTML = days.map(d => `
                     <div class="p-8 rounded-[2.5rem] border bg-card border-main relative group shadow-sm">
                         <button onclick="openModal('edit_blueprint', '${d}')" class="absolute top-6 right-6 p-2 rounded-xl bg-secondary border border-main text-muted opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><i data-lucide="edit-3" size="14"></i></button>
                         <h4 class="text-[10px] font-bold uppercase tracking-widest text-muted mb-8 border-b border-main pb-2">${d}</h4>
@@ -573,29 +616,50 @@
 
             if (state.currentView === 'HISTORY') {
                 const hl = document.getElementById('history-list');
-                hl.innerHTML = state.history.map(h => `
-                    <div class="p-6 rounded-3xl border flex items-center justify-between bg-card border-main shadow-sm">
-                        <div><p class="text-sm font-bold text-main uppercase tracking-wider">${h.date.split(' ').slice(1,3).join(' ')}</p></div>
-                        <div class="text-right"><p class="text-2xl font-black accent-text">${h.efficiency}%</p></div>
-                    </div>
-                `).join('');
-                if(state.history.length === 0) hl.innerHTML = '<div class="text-center py-20"><p class="text-muted/30 text-xs font-bold uppercase tracking-[0.3em]">No archive records</p></div>';
+                if(hl) {
+                    hl.innerHTML = state.history.map(h => `
+                        <div class="p-6 rounded-3xl border flex items-center justify-between bg-card border-main shadow-sm">
+                            <div><p class="text-sm font-bold text-main uppercase tracking-wider">${h.date.split(' ').slice(1,3).join(' ')}</p></div>
+                            <div class="text-right"><p class="text-2xl font-black accent-text">${h.efficiency}%</p></div>
+                        </div>
+                    `).join('');
+                    if(state.history.length === 0) hl.innerHTML = '<div class="text-center py-20"><p class="text-muted/30 text-xs font-bold uppercase tracking-[0.3em]">No archive records</p></div>';
+                }
             }
 
             if (state.currentView === 'PROFILE') {
                 const ps = document.getElementById('profile-selector-list');
-                ps.innerHTML = state.profiles.map(p => `
-                    <div class="flex items-center gap-4 p-5 rounded-3xl border transition-all ${state.activeProfileId === p.id ? 'bg-card border-indigo-500 dark:border-[#D9F99D] shadow-md' : 'bg-card border-main'}">
-                        <div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center font-black accent-text border border-main">${p.name[0]}</div>
+                if(ps) ps.innerHTML = state.profiles.map(p => `
+                    <div onclick="switchProfile('${p.id}')" class="flex items-center gap-4 p-5 rounded-3xl border transition-all cursor-pointer ${state.activeProfileId === p.id ? 'bg-card border-indigo-500 dark:border-[#D9F99D] shadow-md' : 'bg-card border-main opacity-60 hover:opacity-100'}">
+                        <div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center font-black text-[10px] accent-text border border-main overflow-hidden">
+                            ${p.avatar ? `<img src="${p.avatar}" class="w-full h-full object-cover">` : p.name[0]}
+                        </div>
                         <div class="flex-1 truncate text-xs font-bold text-main uppercase tracking-widest">${p.name}</div>
+                        ${state.activeProfileId === p.id ? '<i data-lucide="check-circle-2" class="accent-text" size="16"></i>' : ''}
                     </div>
                 `).join('');
+
                 const age = calculateAge(profile.birthdate);
-                document.getElementById('profile-name-large').innerText = profile.name;
-                document.getElementById('age-stats').innerHTML = `
+                const profNameLarge = document.getElementById('profile-name-large');
+                if(profNameLarge) profNameLarge.innerText = profile.name;
+                
+                const ageStatsEl = document.getElementById('age-stats');
+                if(ageStatsEl) ageStatsEl.innerHTML = `
                     <div class="px-8 py-5 rounded-2xl border bg-card border-main shadow-sm"><p class="text-[8px] font-bold text-muted mb-1 uppercase tracking-widest">Years</p><p class="text-2xl font-black text-main">${age.years}</p></div>
                     <div class="px-8 py-5 rounded-2xl border bg-card border-main shadow-sm"><p class="text-[8px] font-bold text-muted mb-1 uppercase tracking-widest">Months</p><p class="text-2xl font-black text-main">${age.months}</p></div>
                 `;
+
+                const avatarLargeEl = document.getElementById('profile-avatar-large');
+                if(avatarLargeEl) {
+                    if(profile.avatar) avatarLargeEl.innerHTML = `<img src="${profile.avatar}" class="w-full h-full object-cover">`;
+                    else avatarLargeEl.innerText = profile.name[0];
+                }
+
+                const deleteBtn = document.getElementById('delete-profile-btn');
+                if(deleteBtn) {
+                    if(state.profiles.length > 1) deleteBtn.classList.remove('hidden');
+                    else deleteBtn.classList.add('hidden');
+                }
             }
             lucide.createIcons();
         }
