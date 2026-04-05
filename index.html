@@ -38,11 +38,13 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .text-main { color: var(--text-main); }
-        .bg-card { background-color: var(--card-bg); }
-        .border-main { border-color: var(--border-color); }
-        .accent-text { color: var(--accent-color); }
-        .accent-bg { background-color: var(--accent-color); }
+        /* Enforced visibility classes */
+        .text-main { color: var(--text-main) !important; }
+        .bg-card { background-color: var(--card-bg) !important; }
+        .bg-secondary { background-color: var(--bg-secondary) !important; }
+        .border-main { border-color: var(--border-color) !important; }
+        .accent-text { color: var(--accent-color) !important; }
+        .accent-bg { background-color: var(--accent-color) !important; }
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
@@ -85,7 +87,7 @@
         }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-48">
 
     <!-- MODAL SYSTEM -->
     <div id="modal-overlay" class="fixed inset-0 z-[100] items-center justify-center p-4">
@@ -98,13 +100,13 @@
     <header class="max-w-6xl mx-auto px-6 pt-12 pb-8 flex justify-between items-start">
         <div class="cursor-pointer" onclick="navigateTo('DASHBOARD')">
             <h1 class="text-2xl font-black tracking-tighter text-main uppercase">Life<span class="accent-text">Flux</span></h1>
-            <p class="text-[10px] font-bold tracking-[0.4em] mt-1 text-muted uppercase">System V4.1 — <span id="header-day" class="text-main/60">MONDAY</span></p>
+            <p class="text-[10px] font-bold tracking-[0.4em] mt-1 text-muted uppercase">System V4.1 — <span id="header-day" class="text-main">MONDAY</span></p>
         </div>
         <div class="flex items-center gap-4">
             <!-- THEME TOGGLE -->
-            <button onclick="toggleTheme()" class="p-3 rounded-2xl border border-main bg-card text-main hover:scale-105 transition-transform">
-                <i data-lucide="sun" id="theme-icon-sun" class="hidden"></i>
-                <i data-lucide="moon" id="theme-icon-moon"></i>
+            <button onclick="toggleTheme()" class="p-3 rounded-2xl border border-main bg-card text-main hover:scale-105 transition-transform flex items-center justify-center">
+                <i data-lucide="sun" id="theme-icon-sun" class="hidden" size="20"></i>
+                <i data-lucide="moon" id="theme-icon-moon" size="20"></i>
             </button>
 
             <div class="px-4 py-2 rounded-2xl border bg-card border-main flex items-center gap-3">
@@ -169,7 +171,7 @@
         <!-- PAGE: WEEKLY -->
         <div id="WEEKLY_ARCHITECTURE" class="page">
             <div class="flex items-center gap-4 mb-8">
-                <button onclick="navigateTo('DASHBOARD')" class="p-3 border rounded-2xl bg-card border-main text-main"><i data-lucide="chevron-left" size="20"></i></button>
+                <button onclick="navigateTo('DASHBOARD')" class="p-3 border rounded-2xl bg-card border-main text-main flex items-center justify-center"><i data-lucide="chevron-left" size="20"></i></button>
                 <h2 class="text-xl font-bold text-main">Architecture Plan</h2>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="full-weekly-grid"></div>
@@ -178,7 +180,7 @@
         <!-- PAGE: HISTORY -->
         <div id="HISTORY" class="page max-w-3xl mx-auto">
             <div class="flex items-center gap-4 mb-8">
-                <button onclick="navigateTo('DASHBOARD')" class="p-3 border rounded-2xl bg-card border-main text-main"><i data-lucide="chevron-left" size="20"></i></button>
+                <button onclick="navigateTo('DASHBOARD')" class="p-3 border rounded-2xl bg-card border-main text-main flex items-center justify-center"><i data-lucide="chevron-left" size="20"></i></button>
                 <h2 class="text-xl font-bold text-main">System Logs</h2>
             </div>
             <div class="space-y-4" id="history-list"></div>
@@ -188,7 +190,7 @@
         <div id="PROFILE" class="page max-w-4xl mx-auto">
             <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center gap-4">
-                    <button onclick="navigateTo('DASHBOARD')" class="p-3 border rounded-2xl bg-card border-main text-main"><i data-lucide="chevron-left" size="20"></i></button>
+                    <button onclick="navigateTo('DASHBOARD')" class="p-3 border rounded-2xl bg-card border-main text-main flex items-center justify-center"><i data-lucide="chevron-left" size="20"></i></button>
                     <h2 class="text-xl font-bold text-main">Settings</h2>
                 </div>
                 <button onclick="openModal('add_profile')" class="px-6 py-3 rounded-2xl accent-bg text-black font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-opacity hover:opacity-90"><i data-lucide="user-plus" size="16"></i> New Profile</button>
@@ -201,12 +203,12 @@
                 </div>
 
                 <div class="lg:col-span-2 rounded-[2.5rem] border p-10 bg-card border-main relative shadow-sm">
-                    <button onclick="openModal('edit_profile')" class="absolute top-8 right-8 p-3 rounded-2xl bg-secondary border border-main text-muted hover:accent-text transition-colors"><i data-lucide="pencil" size="14"></i></button>
+                    <button onclick="openModal('edit_profile')" class="absolute top-8 right-8 p-3 rounded-2xl bg-secondary border border-main text-muted hover:accent-text transition-colors flex items-center justify-center"><i data-lucide="pencil" size="14"></i></button>
                     <div class="text-center">
                         <div class="relative inline-block">
-                            <div id="profile-avatar-large" class="w-32 h-32 rounded-[2.5rem] overflow-hidden bg-secondary border border-main mx-auto mb-4 flex items-center justify-center text-muted font-black text-4xl">U</div>
+                            <div id="profile-avatar-large" class="w-32 h-32 rounded-[2.5rem] overflow-hidden bg-secondary border border-main mx-auto mb-4 flex items-center justify-center text-main font-black text-4xl">U</div>
                             <input type="file" id="avatar-input" class="hidden" accept="image/*" onchange="handleAvatarUpload(event)">
-                            <button onclick="document.getElementById('avatar-input').click()" class="absolute bottom-2 right-0 p-3 rounded-2xl accent-bg text-black shadow-lg hover:scale-110 transition-transform"><i data-lucide="camera" size="18"></i></button>
+                            <button onclick="document.getElementById('avatar-input').click()" class="absolute bottom-2 right-0 p-3 rounded-2xl accent-bg text-black shadow-lg hover:scale-110 transition-transform flex items-center justify-center"><i data-lucide="camera" size="18"></i></button>
                         </div>
                         <h3 id="profile-name-large" class="text-3xl font-bold text-main">User Alpha</h3>
                         <div class="mt-6 flex flex-wrap justify-center gap-4" id="age-stats"></div>
@@ -217,6 +219,11 @@
                 </div>
             </div>
         </div>
+
+        <!-- CREDITS FOOTER -->
+        <footer class="pt-12 pb-24 text-center opacity-40">
+            <p class="text-[9px] font-bold uppercase tracking-[0.5em] text-muted">Architected by <span class="text-main">JWAL V. PATEL</span></p>
+        </footer>
 
     </main>
 
@@ -373,7 +380,7 @@
             
             let html = `<div class="flex justify-between items-center mb-6">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-muted">${type.replace('_', ' ')}</h3>
-                <button onclick="closeModal()" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-muted"><i data-lucide="x" size="20"></i></button>
+                <button onclick="closeModal()" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-muted flex items-center justify-center"><i data-lucide="x" size="20"></i></button>
             </div>`;
 
             const inputStyle = "w-full p-4 rounded-xl border bg-secondary border-main text-main focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-[#D9F99D] transition-all placeholder:text-muted/50";
@@ -537,7 +544,7 @@
                 const pg = document.getElementById('protocol-grid');
                 pg.innerHTML = state.rechargeData.map(p => `
                     <div onclick="handleProtocolIncrement('${p.id}')" class="protocol-card group relative p-6 border rounded-3xl cursor-pointer bg-card border-main transition-all hover:border-slate-400 dark:hover:border-slate-700 shadow-sm">
-                        <button onclick="removeProtocol('${p.id}', event)" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-10">
+                        <button onclick="removeProtocol('${p.id}', event)" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-10 flex items-center justify-center">
                             <i data-lucide="x" size="10"></i>
                         </button>
                         <p class="text-[8px] font-bold text-muted uppercase tracking-widest mb-1">${p.label}</p>
@@ -553,7 +560,7 @@
                 const grid = document.getElementById('full-weekly-grid');
                 grid.innerHTML = days.map(d => `
                     <div class="p-8 rounded-[2.5rem] border bg-card border-main relative group shadow-sm">
-                        <button onclick="openModal('edit_blueprint', '${d}')" class="absolute top-6 right-6 p-2 rounded-xl bg-secondary border border-main text-muted opacity-0 group-hover:opacity-100 transition-all"><i data-lucide="edit-3" size="14"></i></button>
+                        <button onclick="openModal('edit_blueprint', '${d}')" class="absolute top-6 right-6 p-2 rounded-xl bg-secondary border border-main text-muted opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><i data-lucide="edit-3" size="14"></i></button>
                         <h4 class="text-[10px] font-bold uppercase tracking-widest text-muted mb-8 border-b border-main pb-2">${d}</h4>
                         <div class="space-y-5">
                             ${['BREAKFAST', 'LUNCH', 'DINNER'].map(m => `
