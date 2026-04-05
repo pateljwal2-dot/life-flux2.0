@@ -91,7 +91,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 1.2s ease, visibility 1.2s; /* Slightly slower transition for smoothness */
+            transition: opacity 1.2s ease, visibility 1.2s;
         }
 
         ::selection {
@@ -104,7 +104,9 @@
 
     <!-- SPLASH SCREEN -->
     <div id="splash-screen">
-        <h1 id="splash-greeting" class="text-4xl sm:text-6xl font-black tracking-tighter text-main uppercase mb-2">Hi!! User</h1>
+        <h1 id="splash-greeting" class="text-4xl sm:text-6xl font-light tracking-tighter text-main uppercase mb-2">
+            Hi! <span id="splash-user-name" class="font-black">User</span>
+        </h1>
         <p class="text-xs font-bold tracking-[0.6em] accent-text uppercase animate-pulse">Flow Without Limits</p>
     </div>
 
@@ -698,13 +700,12 @@
             updateClock();
             render();
 
-            // Splash Screen Logic - EXTENDED TIME
+            // Splash Screen Logic
             const activeProfile = state.profiles.find(p => p.id === state.activeProfileId) || state.profiles[0];
-            const splashGreeting = document.getElementById('splash-greeting');
+            const splashUserEl = document.getElementById('splash-user-name');
             const splashScreen = document.getElementById('splash-screen');
-            if (splashGreeting) splashGreeting.innerText = `Hi!! ${activeProfile.name}`;
+            if (splashUserEl) splashUserEl.innerText = activeProfile.name;
             
-            // Increased from 2000ms to 4000ms for a more deliberate welcome experience
             setTimeout(() => {
                 if (splashScreen) {
                     splashScreen.style.opacity = '0';
