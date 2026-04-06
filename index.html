@@ -429,7 +429,14 @@
                 html += `
                     <div class="space-y-4">
                         <input id="input-task" placeholder="Objective Name" class="${inputStyle}">
-                        <input id="input-time" value="12:00 PM" class="${inputStyle}">
+                        <div class="flex gap-2">
+                            <input id="input-time-raw" placeholder="12:00" class="${inputStyle} flex-1">
+                            <div class="flex border border-main rounded-xl overflow-hidden bg-secondary">
+                                <button id="am-toggle" onclick="setAMPM('AM')" class="px-4 py-2 text-[10px] font-black tracking-widest accent-bg text-black transition-all">AM</button>
+                                <button id="pm-toggle" onclick="setAMPM('PM')" class="px-4 py-2 text-[10px] font-black tracking-widest text-muted transition-all">PM</button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="selected-ampm" value="AM">
                         <button onclick="saveTask()" class="${btnPrimary}">Initialize</button>
                     </div>`;
             } else if (type === 'add_protocol') {
@@ -481,12 +488,34 @@
             lucide.createIcons();
         }
 
+        // New Helper for AM/PM toggling
+        function setAMPM(val) {
+            const amBtn = document.getElementById('am-toggle');
+            const pmBtn = document.getElementById('pm-toggle');
+            const hidden = document.getElementById('selected-ampm');
+            
+            hidden.value = val;
+            if (val === 'AM') {
+                amBtn.className = "px-4 py-2 text-[10px] font-black tracking-widest accent-bg text-black transition-all";
+                pmBtn.className = "px-4 py-2 text-[10px] font-black tracking-widest text-muted transition-all";
+            } else {
+                pmBtn.className = "px-4 py-2 text-[10px] font-black tracking-widest accent-bg text-black transition-all";
+                amBtn.className = "px-4 py-2 text-[10px] font-black tracking-widest text-muted transition-all";
+            }
+        }
+
         function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
 
         function saveTask() {
             const task = document.getElementById('input-task').value;
-            const time = document.getElementById('input-time').value;
+            const timeRaw = document.getElementById('input-time-raw').value;
+            const ampm = document.getElementById('selected-ampm').value;
+            
             if(!task) return;
+            
+            // Format time with AM/PM
+            const time = `${timeRaw || '12:00'} ${ampm}`;
+            
             state.fluxTasks.push({ id: Date.now().toString(), task, time, day: state.selectedDay });
             closeModal();
             render();
